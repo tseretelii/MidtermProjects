@@ -6,7 +6,7 @@
         {
             // N1
             #region Calculator
-            //Console.WriteLine("Hello, World!");
+            //Console.WriteLine("Hello, World!"); // ეს ლოგიკა კლასის ბოდი-ში არის წასაღებიი!!!!
 
             //double us1;
             //double us2;
@@ -60,14 +60,34 @@
         public static void StartGame(int range)
         {
             Random random = new Random();
-            int number = random.Next(0, range);
+            int number = random.Next(-1, 2);
 
-            int guess;
-            while (!int.TryParse(Console.ReadLine(), out guess) || guess != number)
+            //int guess;
+            // ლუპი გადასაწერია - გადასაწერი იქნება კალკულატორიც
+            while (true) // როდესაც ჯერ შემყავს ინტი და მერე სტრინგი არასწორად მუშაობს (რადგან პირველად შეყვანისას guess იმახსოვრებს მნიშვნელობას მეორე ჯერზე თუ სტრინგი შემყავს)!!!!
             {
-                Console.WriteLine("Try Again");
+                int guess;
+                while (true)
+                {
+                    if (int.TryParse(Console.ReadLine(), out guess))
+                        break;
+                    else
+                        Console.WriteLine("Invalid Input!");
+                }
+                if (guess > number)
+                {
+                    Console.WriteLine("Lower!");
+                }
+                else if (guess < number)
+                {
+                    Console.WriteLine("Higher!");
+                }
+                else if (guess == number)
+                {
+                    Console.WriteLine($"You Win, The Number Was: {number}");
+                    break;
+                }
             }
-            Console.WriteLine($"You Win, The Number Was: {number}");
         }
     }
 }
