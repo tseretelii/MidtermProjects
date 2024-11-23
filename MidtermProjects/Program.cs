@@ -16,6 +16,10 @@
             #region GuessingGame
             //GuessingGame.StartGame(11);
             #endregion
+
+            // N3
+            Hangman.StartGame(Hangman.Difficulty.Easy);
+
         }
     }
 
@@ -147,15 +151,84 @@
 
     // N3
     #region Hangman
+    // კოდს აქვს შემდეგი პრობლემები / ნიუანსი დასამატებელი
+    // სადმე უნდა შევინახო რომელი ასო გამოიცნო უკვე იუზერმა, რათა იმუშაოს ისეთ სიტყვებზეც სადაც ერთი და იგივე ასო რამდენიმეჯერაა
+    // დეშის დაბეჭდვის ლოგიკაა გასასწორებელი
     public static class Hangman
     {
         private static Random random = new Random();
         private static List<string> easyWords = ["apple", "house", "chair", "table", "river","music", "tiger", "cloud", "green", "happy"];
         private static List<string> mediumWords = ["garden", "puzzle", "forest", "mirror", "ocean", "pencil", "basket", "planet", "secret", "circus"];
         private static List<string> hardWords = ["mountain", "diamond", "thunder", "jewelry", "cactus", "villain", "mystery", "squirrel", "glacier", "ancient"];
-        public static void StartGame()
+        private static int numberOfTries = 9;
+        private static List<string> drawing =
+            [
+                "|\n|\n|\n|\n",
+                " ___\n|\n|\n|\n|\n",
+                " ___\n|   |\n|\n|\n|",
+                " ___\n|   |\n|   O\n|\n|",
+                " ___\n|   |\n|   O\n|  /\n|",
+                " ___\n|   |\n|   O\n|  /|\n|",
+                " ___\n|   |\n|   O\n|  /|\\\n|",
+                " ___\n|   |\n|   O\n|  /|\\\n|  /",
+                " ___\n|   |\n|   O\n|  /|\\\n|  / \\"
+            ];
+        public static void StartGame(Difficulty difficulty)
         {
-            random.Next(easyWords.Count);
+            Console.WriteLine("Wellcome To The Hangman Game!");
+            int tries = numberOfTries;
+            int points = 0;
+            string wordToGuess = GetWordByDifficulty(difficulty);
+            while (tries > 0)
+            {
+                string input = Console.ReadLine();
+
+                if (!ValidateUserInput(input))
+                {
+                    Console.WriteLine("Invalid Input");
+                    continue;
+                }
+
+                
+            }
+        }
+
+        private static string GetWordByDifficulty(Difficulty difficulty)
+        {
+            if (difficulty == Difficulty.Easy)
+            {
+                return easyWords[random.Next(easyWords.Count())];
+            }
+            else if (difficulty == Difficulty.Medium)
+            {
+                return mediumWords[random.Next(mediumWords.Count())];
+            }
+            else
+            {
+                return hardWords[random.Next(hardWords.Count())];
+            }
+        }
+
+        private static bool ValidateUserInput(string input)
+        {
+            return !string.IsNullOrEmpty(input) && input.Length == 1 && char.IsLetter(input[0]);
+        }
+
+        private static bool CheckIfUserInputInWord(char userInput, string wordToGuess)
+        {
+            for (int i = 0; i < wordToGuess.Length; i++)
+            {
+                if ( userInput == wordToGuess[i])
+                    return true;
+            }
+            return false;
+        }
+
+        public enum Difficulty
+        {
+            Easy,
+            Medium,
+            Hard
         }
     }
     #endregion
