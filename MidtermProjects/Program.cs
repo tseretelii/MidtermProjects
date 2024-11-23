@@ -6,28 +6,16 @@
         {
             // N1
             #region Calculator
-            //Console.WriteLine("Hello, World!"); // ეს ლოგიკა კლასის ბოდი-ში არის წასაღებიი!!!!
-
-            //double us1;
-            //double us2;
-            //Console.WriteLine("Enter The First Number");
-            //while (true)
-            //{
-            //    if (double.TryParse(Console.ReadLine(), out us1))
-            //        break;
-            //}
-            //Console.WriteLine("Enter The Second Number");
-            //while (true)
-            //{
-            //    if (double.TryParse(Console.ReadLine(), out us2))
-            //        break;
-            //}
-
-            //Console.WriteLine(Calculator.Addition(us1, us2));
+            //Console.WriteLine(Calculator.Addition());
+            //Console.WriteLine(Calculator.Subtraction());
+            //Console.WriteLine(Calculator.Multiplication());
+            //Console.WriteLine(Calculator.Division());
             #endregion
 
             // N2
-            GuessingGame.StartGame(5);
+            #region GuessingGame
+            //GuessingGame.StartGame(11);
+            #endregion
         }
     }
 
@@ -35,36 +23,93 @@
     #region Calculator
     public static class Calculator
     {
-        public static double Addition(double x, double y)
+        public static double Addition()
         {
-            return x + y;
+            double us1;
+            double us2;
+            Console.WriteLine("Enter The First Number");
+            while (true)
+            {
+                if (double.TryParse(Console.ReadLine(), out us1))
+                    break;
+            }
+            Console.WriteLine("Enter The Second Number");
+            while (true)
+            {
+                if (double.TryParse(Console.ReadLine(), out us2))
+                    break;
+            }
+            return us1 + us2;
         }
-        public static double Subtraction(double x, double y)
+        public static double Subtraction()
         {
-            return x - y;
+            double us1;
+            double us2;
+            Console.WriteLine("Enter The First Number");
+            while (true)
+            {
+                if (double.TryParse(Console.ReadLine(), out us1))
+                    break;
+            }
+            Console.WriteLine("Enter The Second Number");
+            while (true)
+            {
+                if (double.TryParse(Console.ReadLine(), out us2))
+                    break;
+            }
+            return us1 - us2;
         }
-        public static double Multiplication(double x, double y)
+        public static double Multiplication()
         {
-            return x * y;
+            double us1;
+            double us2;
+            Console.WriteLine("Enter The First Number");
+            while (true)
+            {
+                if (double.TryParse(Console.ReadLine(), out us1))
+                    break;
+            }
+            Console.WriteLine("Enter The Second Number");
+            while (true)
+            {
+                if (double.TryParse(Console.ReadLine(), out us2))
+                    break;
+            }
+            return us1 * us2;
         }
-        public static double Division(double x, double y)
+        public static double Division()
         {
-            return x / y;
+            double us1;
+            double us2;
+            Console.WriteLine("Enter The First Number");
+            while (true)
+            {
+                if (double.TryParse(Console.ReadLine(), out us1))
+                    break;
+            }
+            Console.WriteLine("Enter The Second Number");
+            while (true)
+            {
+                if (double.TryParse(Console.ReadLine(), out us2))
+                    break;
+            }
+            return us1 / us2;
         }
     }
     #endregion
 
     // N2
+    #region GuessingGame
     public class GuessingGame
     {
         public static void StartGame(int range)
         {
+            Console.WriteLine("Wellcome To My Guessing Game");
             Random random = new Random();
-            int number = random.Next(-1, 2);
+            int number = random.Next(0, range);
 
-            //int guess;
-            // ლუპი გადასაწერია - გადასაწერი იქნება კალკულატორიც
-            while (true) // როდესაც ჯერ შემყავს ინტი და მერე სტრინგი არასწორად მუშაობს (რადგან პირველად შეყვანისას guess იმახსოვრებს მნიშვნელობას მეორე ჯერზე თუ სტრინგი შემყავს)!!!!
+            int nOfGuesses = 0;
+            while (true)
             {
                 int guess;
                 while (true)
@@ -84,10 +129,34 @@
                 }
                 else if (guess == number)
                 {
-                    Console.WriteLine($"You Win, The Number Was: {number}");
+                    if (nOfGuesses == 0)
+                    {
+                        Console.WriteLine("You Win, First Try! Incredible");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"You Win, The Number Was: {number}\nIt Took You {nOfGuesses + 1 } Guesses");
+                    }
                     break;
                 }
+                nOfGuesses++;
             }
         }
     }
+    #endregion
+
+    // N3
+    #region Hangman
+    public static class Hangman
+    {
+        private static Random random = new Random();
+        private static List<string> easyWords = ["apple", "house", "chair", "table", "river","music", "tiger", "cloud", "green", "happy"];
+        private static List<string> mediumWords = ["garden", "puzzle", "forest", "mirror", "ocean", "pencil", "basket", "planet", "secret", "circus"];
+        private static List<string> hardWords = ["mountain", "diamond", "thunder", "jewelry", "cactus", "villain", "mystery", "squirrel", "glacier", "ancient"];
+        public static void StartGame()
+        {
+            random.Next(easyWords.Count);
+        }
+    }
+    #endregion
 }
