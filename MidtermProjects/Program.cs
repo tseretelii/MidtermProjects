@@ -157,10 +157,45 @@
     public static class Hangman
     {
         private static Random random = new Random();
-        private static List<string> easyWords = ["apple", "house", "chair", "table", "river","music", "tiger", "cloud", "green", "happy"];
-        private static List<string> mediumWords = ["garden", "puzzle", "forest", "mirror", "ocean", "pencil", "basket", "planet", "secret", "circus"];
-        private static List<string> hardWords = ["mountain", "diamond", "thunder", "jewelry", "cactus", "villain", "mystery", "squirrel", "glacier", "ancient"];
-        private static int numberOfTries = 9;
+        private static List<string> easyWords = 
+            [
+                "apple",
+                "house",
+                "chair",
+                "table",
+                "river",
+                "music",
+                "tiger",
+                "cloud",
+                "green",
+                "happy"
+            ];
+        private static List<string> mediumWords = 
+            [
+                "garden",
+                "puzzle",
+                "forest",
+                "mirror",
+                "ocean",
+                "pencil",
+                "basket",
+                "planet",
+                "secret",
+                "circus"
+            ];
+        private static List<string> hardWords = 
+            [
+                "mountain",
+                "diamond",
+                "thunder",
+                "jewelry",
+                "cactus",
+                "villain",
+                "mystery",
+                "squirrel",
+                "glacier",
+                "ancient"
+            ];
         private static List<string> drawing =
             [
                 "|\n|\n|\n|\n",
@@ -173,13 +208,16 @@
                 " ___\n|   |\n|   O\n|  /|\\\n|  /",
                 " ___\n|   |\n|   O\n|  /|\\\n|  / \\"
             ];
+        private static int numberOfTries = 9;
         public static void StartGame(Difficulty difficulty)
         {
             Console.WriteLine("Wellcome To The Hangman Game!");
             int tries = numberOfTries;
             int points = 0;
-            string wordToGuess = GetWordByDifficulty(difficulty);
-            while (tries > 0)
+            //string wordToGuess = GetWordByDifficulty(difficulty);
+            string wordToGuess = "banana";
+            char[] guessedCharByUser = new char[wordToGuess.Length];
+            while (tries > 0 || string.Join("", guessedCharByUser) != wordToGuess)
             {
                 string input = Console.ReadLine();
 
@@ -189,8 +227,26 @@
                     continue;
                 }
 
-                
+                bool letterGuessed = false;
+
+                for (int i = 0; i < wordToGuess.Length; i++)
+                {
+                    if (wordToGuess[i] == input[0])
+                    {
+                        letterGuessed = true;
+                        guessedCharByUser[i] = input[0];
+                    }
+                }
+                if (!letterGuessed)
+                {
+                    tries--;
+                }
+                guessedCharByUser.ToList().ForEach(Console.Write);
             }
+            if (tries == 0)
+                Console.WriteLine($"You lost the word was {wordToGuess}");
+            else
+                Console.WriteLine("You Won!");
         }
 
         private static string GetWordByDifficulty(Difficulty difficulty)
@@ -214,7 +270,7 @@
             return !string.IsNullOrEmpty(input) && input.Length == 1 && char.IsLetter(input[0]);
         }
 
-        private static bool CheckIfUserInputInWord(char userInput, string wordToGuess)
+        private static bool CheckIfUserInputInWord(char userInput, string wordToGuess) // under construction!
         {
             for (int i = 0; i < wordToGuess.Length; i++)
             {
