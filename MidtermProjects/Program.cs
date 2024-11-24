@@ -216,16 +216,12 @@
             int points = 0;
             //string wordToGuess = GetWordByDifficulty(difficulty);
             string wordToGuess = "banana";
-            char[] guessedCharByUser = new char[wordToGuess.Length];
+            char[] guessedCharByUser = Enumerable.Repeat('_', wordToGuess.Length).ToArray();
             while (tries > 0 || string.Join("", guessedCharByUser) != wordToGuess)
             {
                 string input = Console.ReadLine();
 
-                if (!ValidateUserInput(input))
-                {
-                    Console.WriteLine("Invalid Input");
-                    continue;
-                }
+                if (!ValidateUserInput(input)) { Console.WriteLine("Invalid Input"); continue; }
 
                 bool letterGuessed = false;
 
@@ -238,9 +234,8 @@
                     }
                 }
                 if (!letterGuessed)
-                {
                     tries--;
-                }
+
                 guessedCharByUser.ToList().ForEach(Console.Write);
             }
             if (tries == 0)
