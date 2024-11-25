@@ -309,7 +309,10 @@ namespace MidtermProjects
 
     public class BookManager
     {
+
         public List<Book> Books { get; private set; }
+        private static string _path = "C:\\Users\\Gigi\\Desktop\\BookFolder";
+        private static DirectoryInfo _directory = new DirectoryInfo(_path);
 
         public void AddBook(string title, string author, DateOnly releaseYear)
         {
@@ -319,7 +322,11 @@ namespace MidtermProjects
 
         private void SaveToFile(Book book)
         {
-            
+            if (!_directory.Exists)
+            {
+                _directory.Create();
+            }
+
         }
     }
     #endregion
