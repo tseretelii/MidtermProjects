@@ -1,4 +1,6 @@
-﻿namespace MidtermProjects
+﻿using Microsoft.Win32.SafeHandles;
+
+namespace MidtermProjects
 {
     internal class Program
     {
@@ -151,7 +153,6 @@
 
     // N3
     #region Hangman
-    // დეშის დაბეჭდვის ლოგიკაა გასასწორებელი
     public static class Hangman
     {
         private static Random random = new Random();
@@ -286,6 +287,39 @@
             Easy,
             Medium,
             Hard
+        }
+    }
+    #endregion
+
+
+    // OOP
+    #region წიგნების სია
+    public class Book
+    {
+        public Book(string title, string author, DateOnly releaseYear)
+        {
+            _title = title;
+            _author = author;
+            _releaseYear = releaseYear;
+        }
+        private string _title;
+        private string _author;
+        private DateOnly _releaseYear;
+    }
+
+    public class BookManager
+    {
+        public List<Book> Books { get; private set; }
+
+        public void AddBook(string title, string author, DateOnly releaseYear)
+        {
+            Books.Add(new Book(title, author, releaseYear));
+            // SaveToFile(Books[Books.Count-1])
+        }
+
+        private void SaveToFile(Book book)
+        {
+            
         }
     }
     #endregion
