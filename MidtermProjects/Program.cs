@@ -31,6 +31,7 @@ namespace MidtermProjects
 
             BookManager.AddBook("lord of the rings II", "j.r.r Tolkein", DateOnly.FromDateTime(DateTime.Now));
             BookManager.GetAllBooks();
+            BookManager.GetBookByName("lord of the rings II");
 
             #endregion
 
@@ -303,7 +304,6 @@ namespace MidtermProjects
     }
     #endregion
 
-
     // N4 OOP
     #region წიგნების სია
     public class Book
@@ -328,7 +328,6 @@ namespace MidtermProjects
 
         public static void AddBook(string title, string author, DateOnly releaseYear)
         {
-            //Books.Add(new Book(title, author, releaseYear));
             SaveToFile(new Book(title, author, releaseYear));
         }
 
@@ -347,6 +346,27 @@ namespace MidtermProjects
                 }
             }
             Books.ForEach(x => Console.WriteLine($"\"{x.Title}\" By {x.Author}, Published in {x.ReleaseYear}"));
+        }
+
+        public static void GetBookByName(string title)
+        {
+            FileInfo[] fileInfos = _directory.GetFiles($"{title}.txt");
+            if (fileInfos.Count() < 1)
+            {
+                Console.WriteLine($"No book found titled \"{title}\"");
+                return;
+            }
+            foreach (FileInfo fileInfo in fileInfos)
+            {
+                using(FileStream fs = fileInfo.OpenRead())
+                {
+                    using (StreamReader streamReader = new StreamReader(fs))
+                    {
+                        Book x = JsonSerializer.Deserialize<Book>(streamReader.ReadToEnd());
+                        Console.WriteLine($"\"{x.Title}\" By {x.Author}, Published in {x.ReleaseYear}");
+                    }
+                }
+            }
         }
 
         private static void SaveToFile(Book book)
