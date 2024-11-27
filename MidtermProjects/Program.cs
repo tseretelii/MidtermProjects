@@ -10,7 +10,7 @@ namespace MidtermProjects
         {
             // N1
             #region Calculator
-            Calculator.UserInterface();
+            //Calculator.UserInterface();
             #endregion
 
             // N2
@@ -25,14 +25,8 @@ namespace MidtermProjects
 
             // N4 OOP
             #region წიგნების სია
-
-            //BookManager.AddBook("lord of the rings", "j.r.r Tolkein", DateOnly.FromDateTime(DateTime.Now));
-            //BookManager.GetAllBooks();
-            //BookManager.GetBookByName("lord of the rings");
-
+            BookManager.UserInterface();
             #endregion
-
-            
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MidtermProjects
 {
-    public class GuessingGame
+    public static class GuessingGame
     {
         public static void StartGame(int range)
         {
@@ -25,7 +25,12 @@ namespace MidtermProjects
                     else
                         Console.WriteLine("Invalid Input!");
                 }
-                if (guess > number)
+                if (guess >= range || guess < 0)
+                {
+                    Console.WriteLine("Out of range!");
+                    continue;
+                }
+                else if (guess > number)
                 {
                     Console.WriteLine("Lower!");
                 }

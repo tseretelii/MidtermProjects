@@ -34,7 +34,6 @@ namespace MidtermProjects
             else
                 MultipleOperations();
         }
-
         public static void MultipleOperations()
         {
             double total = 0;

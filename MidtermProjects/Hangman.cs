@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MidtermProjects
 {
-    public class Hangman
+    public static class Hangman
     {
         private static Random random = new Random();
 
