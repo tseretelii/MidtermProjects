@@ -25,7 +25,12 @@ namespace MidtermProjects
 
             // N4 OOP
             #region წიგნების სია
-            BookManager.UserInterface();
+            //BookManager.UserInterface();
+            #endregion
+
+            #region ATM
+            AtmMachine.RegisterPerson("gigi", "tsereteli", "gtsereteli", "123");
+            AtmMachine.RegisterPerson("gigi", "tsereteli", "gtsereteli", "123");
             #endregion
         }
     }
