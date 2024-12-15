@@ -29,8 +29,8 @@ namespace MidtermProjects
             #endregion
 
             #region ATM
-            AtmMachine.RegisterPerson("gigi", "tsereteli", "gtsereteli", "123");
-            AtmMachine.RegisterPerson("gigi", "tsereteli", "gtsereteli", "123");
+            AtmMachine.RegisterAccountForPerson("gigi", "tsereteli");
+            AtmMachine.RegisterAccountForPerson("gigi", "tsereteli");
             #endregion
         }
     }

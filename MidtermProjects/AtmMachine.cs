@@ -8,36 +8,48 @@ namespace MidtermProjects
 {
     public static class AtmMachine
     {
-        public static void RegisterAccountForPerson(string name, string secondName)
+        public static BankAccount RegisterAccountForPerson(string name, string secondName)
         {
             Person person = new Person(name, secondName);
             BankAccount bankAccount = new BankAccount(person);
+            return bankAccount;
         }
 
-        //public static void DepositMoney()
+        public static void Transaction(BankAccount bankAccount, decimal amount, Currency currency)
+        {
+            foreach (var acc in bankAccount.AccountNumber)
+            {
+                if (acc.Key.Value == currency)
+                {
+                    // continue from here!
+                }
+            }
+        }
     }
 
-    internal class Person
+    public class Person
     {
         public string Name { get; private set; }
         public string SecondName { get; private set; }
-        public Person(string name, string secondName)
+        internal Person(string name, string secondName)
         {
             Name = name;
             SecondName = secondName;
         }
     }
-    internal class BankAccount
+    public class BankAccount
     {
         public Person Person1 { get; set; }
-        public Dictionary<string, decimal> AccountNumber { get; private set; }
+        public Dictionary<KeyValuePair<string, Currency>, decimal> AccountNumber { get; private set; } = new Dictionary<KeyValuePair<string, Currency>, decimal>();
+
         public int MyProperty { get; set; }
-        public BankAccount(Person person)
+        internal BankAccount(Person person)
         {
             Person1 = person;
             string accN = AccountNumberGenerator();
-            AccountNumber.Add(accN + "USD",0);
-            AccountNumber.Add(accN + "EUR",0);
+            AccountNumber.Add(new KeyValuePair<string, Currency>(accN, Currency.GEL), 0);
+            AccountNumber.Add(new KeyValuePair<string, Currency>(accN, Currency.USD), 0);
+
         }
         private string AccountNumberGenerator()
         {
@@ -49,5 +61,12 @@ namespace MidtermProjects
             }
             return accountNumber;
         }
+    }
+
+    public enum Currency
+    {
+        GEL=1,
+        USD,
+        EUR
     }
 }
