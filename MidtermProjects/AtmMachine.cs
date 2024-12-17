@@ -17,11 +17,11 @@ namespace MidtermProjects
 
         public static void Transaction(BankAccount bankAccount, decimal amount, Currency currency)
         {
-            foreach (var acc in bankAccount.AccountNumber)
+            foreach (var acc in bankAccount.AccountNumber.ToList())
             {
                 if (acc.Key.Value == currency)
                 {
-                    // continue from here!
+                    bankAccount.AccountNumber[acc.Key] += amount;
                 }
             }
         }
@@ -40,7 +40,7 @@ namespace MidtermProjects
     public class BankAccount
     {
         public Person Person1 { get; set; }
-        public Dictionary<KeyValuePair<string, Currency>, decimal> AccountNumber { get; private set; } = new Dictionary<KeyValuePair<string, Currency>, decimal>();
+        public Dictionary<KeyValuePair<string, Currency>, decimal> AccountNumber { get; set; } = new Dictionary<KeyValuePair<string, Currency>, decimal>();
 
         public int MyProperty { get; set; }
         internal BankAccount(Person person)
@@ -68,5 +68,21 @@ namespace MidtermProjects
         GEL=1,
         USD,
         EUR
+    }
+
+    public static class Recorder
+    {
+        public static string FilePath { get; private set; } = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\BankLog";
+
+        public static void CreateRecord()
+        {
+            DirectoryInfo directoryInfo = new DirectoryInfo(FilePath);
+            if (!directoryInfo.Exists )
+            {
+                directoryInfo.Create();
+            }
+
+            // continue from here
+        }
     }
 }
