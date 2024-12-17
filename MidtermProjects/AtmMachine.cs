@@ -15,7 +15,7 @@ namespace MidtermProjects
             return bankAccount;
         }
 
-        public static void Transaction(BankAccount bankAccount, decimal amount, Currency currency)
+        public static void CreateTransaction(BankAccount bankAccount, decimal amount, Currency currency)
         {
             foreach (var acc in bankAccount.AccountNumber.ToList())
             {
@@ -70,11 +70,40 @@ namespace MidtermProjects
         EUR
     }
 
+    public class Transaction
+    {
+        public BankAccount SenderAccount { get; set; }
+        public BankAccount ReciverAccount { get; set; }
+        public decimal Amount { get; set; }
+        public Currency Curr { get; set; }
+        public Transaction(BankAccount senderAccount, BankAccount reciverAccount, decimal amount, Currency curr)
+        {
+            SenderAccount = senderAccount;
+            ReciverAccount = reciverAccount;
+            Amount = amount;
+            Curr = curr;
+        }
+        public void ExecuteTransaction()
+        {
+
+            decimal senderAccAmount = SenderAccount.AccountNumber.FirstOrDefault(x => x.Key.Value == Curr).Value;
+
+            if (senderAccAmount < Amount)
+                throw new Exception("Insufficient funds");
+
+            var acc = ReciverAccount.AccountNumber.FirstOrDefault(x => x.Key.Value == Curr);
+
+            ReciverAccount.AccountNumber[acc.Key] += Amount;
+
+            // continue from here
+        }
+    }
+
     public static class Recorder
     {
         public static string FilePath { get; private set; } = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\BankLog";
 
-        public static void CreateRecord()
+        public static void CreateRecord(Transaction transaction)
         {
             DirectoryInfo directoryInfo = new DirectoryInfo(FilePath);
             if (!directoryInfo.Exists )
