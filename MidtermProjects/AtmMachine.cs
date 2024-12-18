@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MidtermProjects
@@ -15,15 +16,9 @@ namespace MidtermProjects
             return bankAccount;
         }
 
-        public static void CreateTransaction(BankAccount bankAccount, decimal amount, Currency currency)
+        public static Transaction CreateTransaction(BankAccount senderBankAccount, BankAccount reciverBankAccount, decimal amount, Currency currency)
         {
-            foreach (var acc in bankAccount.AccountNumber.ToList())
-            {
-                if (acc.Key.Value == currency)
-                {
-                    bankAccount.AccountNumber[acc.Key] += amount;
-                }
-            }
+            return new Transaction(senderBankAccount, reciverBankAccount, amount, currency);
         }
     }
 
@@ -40,26 +35,11 @@ namespace MidtermProjects
     public class BankAccount
     {
         public Person Person1 { get; set; }
-        public Dictionary<KeyValuePair<string, Currency>, decimal> AccountNumber { get; set; } = new Dictionary<KeyValuePair<string, Currency>, decimal>();
-
-        public int MyProperty { get; set; }
+        public List<AccountIBAN> AccountNumber { get; set; }
         internal BankAccount(Person person)
         {
             Person1 = person;
-            string accN = AccountNumberGenerator();
-            AccountNumber.Add(new KeyValuePair<string, Currency>(accN, Currency.GEL), 0);
-            AccountNumber.Add(new KeyValuePair<string, Currency>(accN, Currency.USD), 0);
-
-        }
-        private string AccountNumberGenerator()
-        {
-            Random random = new Random();
-            string accountNumber = "";
-            for (int i = 0; i < 16; i++)
-            {
-                accountNumber += random.Next(1, 10).ToString();
-            }
-            return accountNumber;
+            AccountNumber = [new AccountIBAN()];
         }
     }
 
@@ -83,35 +63,71 @@ namespace MidtermProjects
             Amount = amount;
             Curr = curr;
         }
-        public void ExecuteTransaction()
+        public void ExecuteTransaction(int senderIndex, int reciverIndex)
         {
+            if (senderIndex > SenderAccount.AccountNumber.Count || reciverIndex > ReciverAccount.AccountNumber.Count)
+                throw new ArgumentException("out of range");
+            
+            var senderAccAmount = from acc1 in SenderAccount.AccountNumber[senderIndex].Balance
+                                      where acc1.Key == Curr
+                                      select acc1.Value;
 
-            decimal senderAccAmount = SenderAccount.AccountNumber.FirstOrDefault(x => x.Key.Value == Curr).Value;
-
-            if (senderAccAmount < Amount)
+            if (senderAccAmount.ToList()[0] < Amount)
                 throw new Exception("Insufficient funds");
 
-            var acc = ReciverAccount.AccountNumber.FirstOrDefault(x => x.Key.Value == Curr);
+            SenderAccount.AccountNumber[senderIndex].Balance[Curr] -= Amount;
+            ReciverAccount.AccountNumber[reciverIndex].Balance[Curr] += Amount;
 
-            ReciverAccount.AccountNumber[acc.Key] += Amount;
+            Recorder.CreateRecord(this);
+        }
+    }
 
-            // continue from here
+    public class AccountIBAN
+    {
+        public string AccNum { get; set; }
+        public Dictionary<Currency, decimal> Balance { get; set; }
+        public AccountIBAN()
+        {
+            AccNum = AccountNumberGenerator();
+            Balance = new Dictionary<Currency, decimal>()
+            {
+                {Currency.GEL, 0 },
+                {Currency.USD, 0 },
+                {Currency.EUR, 0 },
+            };
+        }
+        private string AccountNumberGenerator()
+        {
+            Random random = new Random();
+            string accountNumber = "";
+            for (int i = 0; i < 16; i++)
+            {
+                accountNumber += random.Next(1, 10).ToString();
+            }
+            return accountNumber;
         }
     }
 
     public static class Recorder
     {
-        public static string FilePath { get; private set; } = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\BankLog";
+        public static string DirPath { get; private set; } = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\BankLog";
 
         public static void CreateRecord(Transaction transaction)
         {
-            DirectoryInfo directoryInfo = new DirectoryInfo(FilePath);
+            DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
             if (!directoryInfo.Exists )
             {
                 directoryInfo.Create();
             }
 
-            // continue from here
+            using (FileStream fileStream = new FileStream(DirPath + "\\Transactions.json", FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                {
+                    streamWriter.WriteLine(JsonSerializer.Serialize(transaction));
+                }
+            }
+            Console.WriteLine("Complete!");
         }
     }
 }
