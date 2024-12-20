@@ -29,8 +29,8 @@ namespace MidtermProjects
             #endregion
 
             #region ATM
-            var bank1 = AtmMachine.RegisterAccountForPerson("gigi", "tsereteli");
-            var bank2 = AtmMachine.RegisterAccountForPerson("elene", "tsereteli");
+            var bank2 = AtmMachine.RegisterAccountForPerson("elene", "tsereteli", "12345678911");
+            var bank1 = AtmMachine.RegisterAccountForPerson("gigi", "tsereteli", "12345678910");
 
             bank1.AccountNumber[0].Balance[Currency.GEL] = 100;
 
