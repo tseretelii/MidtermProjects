@@ -16,6 +16,10 @@ namespace MidtermProjects
         {
             Person person = new Person(name, secondName, personalN);
             BankAccount bankAccount = new BankAccount(person);
+
+            Recorder.CreateRecord(person);
+            Recorder.CreateRecord(bankAccount);
+
             return bankAccount;
         }
 
@@ -23,16 +27,10 @@ namespace MidtermProjects
         {
             return new Transaction(senderBankAccount, reciverBankAccount, amount, currency);
         }
-
-        //public static BankAccount GetBankAccount(UniqueId personId)
-        //{
-        //    return Recorder.GetPersonFromRecord(personId);
-        //}
     }
 
     public class Person
     {
-        public int Id { get; private set; }
         public string PersonalN
         {
             get 
@@ -52,27 +50,25 @@ namespace MidtermProjects
         private string _personalN;
         public string Name { get; private set; }
         public string SecondName { get; private set; }
-        internal Person(string name, string secondName, string personalN)
+        public Person(string name, string secondName, string personalN)
         {
-            //Id = IdGenerator();
             Name = name;
             SecondName = secondName;
             PersonalN = personalN;
-            Recorder.CreateRecord(this);
-        }
-        private static int IdGenerator()
-        {
-            var persons = Recorder.GetPersonFromRecord();
-            return persons.Count + 1;
         }
     }
+
     public class BankAccount
     {
-        public Person Person1 { get; set; }
+        public Person PersonInfo { get; set; }
         public List<AccountIBAN> AccountNumber { get; set; }
-        internal BankAccount(Person person)
+        public BankAccount()
         {
-            Person1 = person;
+            AccountNumber = new List<AccountIBAN>();
+        }
+        public BankAccount(Person person)
+        {
+            PersonInfo = person;
             AccountNumber = [new AccountIBAN()];
         }
     }
@@ -90,6 +86,7 @@ namespace MidtermProjects
         public BankAccount ReciverAccount { get; set; }
         public decimal Amount { get; set; }
         public Currency Curr { get; set; }
+        public Transaction() { }
         public Transaction(BankAccount senderAccount, BankAccount reciverAccount, decimal amount, Currency curr)
         {
             SenderAccount = senderAccount;
@@ -148,63 +145,110 @@ namespace MidtermProjects
 
         public static void CreateRecord(Transaction transaction)
         {
+            string filePath = string.Concat(DirPath, "\\Transactions.json");
+
             DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
             if (!directoryInfo.Exists )
-            {
                 directoryInfo.Create();
-            }
 
-            using (FileStream fileStream = new FileStream(DirPath + "\\Transactions.json", FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            if (!File.Exists(filePath))
+                File.Create(filePath);
+
+            if (File.ReadAllText(filePath) == "")
+                File.WriteAllText(filePath,"[]");
+
+            List<Transaction> transactions = JsonSerializer.Deserialize<List<Transaction>>(File.ReadAllText(filePath), new JsonSerializerOptions { IncludeFields = true, WriteIndented = true }) ?? new List<Transaction>();
+
+            transactions.Add(transaction);
+
+            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
-                    streamWriter.WriteLine(JsonSerializer.Serialize(transaction));
+                    streamWriter.Write(JsonSerializer.Serialize(transactions, new JsonSerializerOptions { WriteIndented = true }));
                 }
             }
         }
 
         public static void CreateRecord(Person person)
         {
+            string filePath = string.Concat(DirPath, "\\Persons.json");
+
             DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
             if (!directoryInfo.Exists)
-            {
                 directoryInfo.Create();
-            }
 
-            using (FileStream fileStream = new FileStream(DirPath + "\\Persons.json", FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            if (!File.Exists(filePath))
+                File.Create(filePath);
+
+            if (File.ReadAllText(filePath) == "")
+                File.WriteAllText(filePath, "[]");
+
+            var persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(filePath)) ?? new List<Person>();
+
+            persons.Add(person);
+
+            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
-                    streamWriter.Write(JsonSerializer.Serialize(person, new JsonSerializerOptions {WriteIndented = true }));
-                    //streamWriter.WriteLine(JsonSerializer.Serialize(person));
+                    streamWriter.Write(JsonSerializer.Serialize(persons, new JsonSerializerOptions {WriteIndented = true }));
                 }
             }
         }
 
-        public static List<Person> GetPersonFromRecord()
+        public static void CreateRecord(BankAccount bankAccount)
         {
-            DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
-            if (!directoryInfo.Exists)
-            {
-                throw new ArgumentException("Directory doesn't exist");
-            }
+            string filePath = string.Concat(DirPath, "\\BankAccount.json");
 
-            FileInfo fileInfo = new FileInfo(DirPath + "\\Persons.json");
-            if (!fileInfo.Exists)
-            {
-                return new List<Person>();
-            }
+            DirectoryInfo dirInfo = new DirectoryInfo(DirPath);
 
-            using (FileStream fileStream = new FileStream(DirPath + "\\Persons.json", FileMode.Open, FileAccess.Read))
+            if (!Directory.Exists(filePath))
+                dirInfo.Create();
+            
+            //if (!File.Exists(filePath))
+            //    File.Create(filePath);
+
+            if (File.ReadAllText(filePath) == "")
+                File.WriteAllText(filePath, "[]");
+
+            List<BankAccount> bankAccounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(filePath), new JsonSerializerOptions { WriteIndented = true }) ?? new List<BankAccount>();
+
+            bankAccounts.Add(bankAccount);
+
+            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
-                using (StreamReader streamReader = new StreamReader(fileStream))
+                using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
-                    var text = streamReader.ReadToEnd();
-                    Console.WriteLine(text);
-                    var list = JsonSerializer.Deserialize<List<Person>>(text);
-                    return list;
+                    streamWriter.Write(JsonSerializer.Serialize(bankAccounts, new JsonSerializerOptions { WriteIndented = true }));
                 }
             }
         }
+
+        //public static List<Person> GetPersonFromRecord()
+        //{
+        //    DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
+        //    if (!directoryInfo.Exists)
+        //    {
+        //        throw new ArgumentException("Directory doesn't exist");
+        //    }
+
+        //    FileInfo fileInfo = new FileInfo(DirPath + "\\Persons.json");
+        //    if (!fileInfo.Exists)
+        //    {
+        //        return new List<Person>();
+        //    }
+
+        //    using (FileStream fileStream = new FileStream(DirPath + "\\Persons.json", FileMode.Open, FileAccess.Read))
+        //    {
+        //        using (StreamReader streamReader = new StreamReader(fileStream))
+        //        {
+        //            var text = streamReader.ReadToEnd();
+        //            Console.WriteLine(text);
+        //            var list = JsonSerializer.Deserialize<List<Person>>(text);
+        //            return list;
+        //        }
+        //    }
+        //} // HAS ERRORS Under Construction!!!
     }
 }
