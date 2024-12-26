@@ -52,9 +52,23 @@ namespace MidtermProjects
         public string SecondName { get; private set; }
         public Person(string name, string secondName, string personalN)
         {
+            CheckIfExists(personalN);
             Name = name;
             SecondName = secondName;
             PersonalN = personalN;
+        }
+
+        public static void CheckIfExists(string personalN) // THROWS STACKOVERFLOW ERROR!!!!
+        {
+            List<Person> list = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(Recorder.DirPath+ "\\Persons.json")) ?? new List<Person>();
+
+            foreach (Person person in list)
+            {
+                if (person.PersonalN == personalN)
+                {
+                    throw new Exception("Person Already Exists");
+                }
+            }
         }
     }
 
@@ -184,7 +198,15 @@ namespace MidtermProjects
             if (File.ReadAllText(filePath) == "")
                 File.WriteAllText(filePath, "[]");
 
-            var persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(filePath)) ?? new List<Person>();
+            List<Person> persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(filePath)) ?? new List<Person>();
+
+            foreach (Person p in persons)
+            {
+                if (p.PersonalN == person.PersonalN)
+                    return;
+            }
+
+            
 
             persons.Add(person);
 
@@ -224,31 +246,5 @@ namespace MidtermProjects
                 }
             }
         }
-
-        //public static List<Person> GetPersonFromRecord()
-        //{
-        //    DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
-        //    if (!directoryInfo.Exists)
-        //    {
-        //        throw new ArgumentException("Directory doesn't exist");
-        //    }
-
-        //    FileInfo fileInfo = new FileInfo(DirPath + "\\Persons.json");
-        //    if (!fileInfo.Exists)
-        //    {
-        //        return new List<Person>();
-        //    }
-
-        //    using (FileStream fileStream = new FileStream(DirPath + "\\Persons.json", FileMode.Open, FileAccess.Read))
-        //    {
-        //        using (StreamReader streamReader = new StreamReader(fileStream))
-        //        {
-        //            var text = streamReader.ReadToEnd();
-        //            Console.WriteLine(text);
-        //            var list = JsonSerializer.Deserialize<List<Person>>(text);
-        //            return list;
-        //        }
-        //    }
-        //} // HAS ERRORS Under Construction!!!
     }
 }

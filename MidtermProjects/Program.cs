@@ -29,12 +29,14 @@ namespace MidtermProjects
             #endregion
 
             #region ATM
-            var bank2 = AtmMachine.RegisterAccountForPerson("elene", "tsereteli", "12345678911");
-            var bank1 = AtmMachine.RegisterAccountForPerson("gigi", "tsereteli", "12345678910");
+            //var bank2 = AtmMachine.RegisterAccountForPerson("elene", "tsereteli", "12345678911");
+            //var bank1 = AtmMachine.RegisterAccountForPerson("gigi", "tsereteli", "12345678910");
 
-            bank1.AccountNumber[0].Balance[Currency.GEL] = 100;
+            //bank1.AccountNumber[0].Balance[Currency.GEL] = 100;
 
-            AtmMachine.CreateTransaction(bank1, bank2, 50, Currency.GEL).ExecuteTransaction(0,0); // The indices 0 and 0 indicate the sender's and receiver's accounts involved in the transaction.
+            //AtmMachine.CreateTransaction(bank1, bank2, 50, Currency.GEL).ExecuteTransaction(0,0); // The indices 0 and 0 indicate the sender's and receiver's accounts involved in the transaction.
+
+            Person person = new Person("Gigi", "Tsereteli", "12345678911");
             #endregion
         }
     }
