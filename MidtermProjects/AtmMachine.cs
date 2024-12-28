@@ -12,14 +12,20 @@ namespace MidtermProjects
 {
     public static class AtmMachine
     {
-        public static BankAccount RegisterAccountForPerson(string name, string secondName, string personalN)
+        public static BankAccount RegisterAccountForPerson(Person person)
         {
-            Person person = new Person(name, secondName, personalN);
+            // Person person = new Person(name, secondName, personalN);
             BankAccount bankAccount = new BankAccount(person);
-
-            Recorder.CreateRecord(person);
+            try
+            {
+                Recorder.CreateRecord(person);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
             Recorder.CreateRecord(bankAccount);
-
+            Console.WriteLine("Code Continues");
             return bankAccount;
         }
 
@@ -50,25 +56,12 @@ namespace MidtermProjects
         private string _personalN;
         public string Name { get; private set; }
         public string SecondName { get; private set; }
+        public DateTime RegisterDate { get; set; }
         public Person(string name, string secondName, string personalN)
         {
-            CheckIfExists(personalN);
             Name = name;
             SecondName = secondName;
             PersonalN = personalN;
-        }
-
-        public static void CheckIfExists(string personalN) // THROWS STACKOVERFLOW ERROR!!!!
-        {
-            List<Person> list = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(Recorder.DirPath+ "\\Persons.json")) ?? new List<Person>();
-
-            foreach (Person person in list)
-            {
-                if (person.PersonalN == personalN)
-                {
-                    throw new Exception("Person Already Exists");
-                }
-            }
         }
     }
 
@@ -76,6 +69,7 @@ namespace MidtermProjects
     {
         public Person PersonInfo { get; set; }
         public List<AccountIBAN> AccountNumber { get; set; }
+        public DateTime RegisterDate { get; set; }
         public BankAccount()
         {
             AccountNumber = new List<AccountIBAN>();
@@ -198,15 +192,17 @@ namespace MidtermProjects
             if (File.ReadAllText(filePath) == "")
                 File.WriteAllText(filePath, "[]");
 
+
             List<Person> persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(filePath)) ?? new List<Person>();
 
             foreach (Person p in persons)
             {
                 if (p.PersonalN == person.PersonalN)
-                    return;
+                    throw new ArgumentException("This person allready exists");
             }
 
             
+            person.RegisterDate = DateTime.Now;
 
             persons.Add(person);
 
@@ -235,6 +231,8 @@ namespace MidtermProjects
                 File.WriteAllText(filePath, "[]");
 
             List<BankAccount> bankAccounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(filePath), new JsonSerializerOptions { WriteIndented = true }) ?? new List<BankAccount>();
+
+            bankAccount.RegisterDate = DateTime.Now;
 
             bankAccounts.Add(bankAccount);
 

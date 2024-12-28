@@ -36,7 +36,10 @@ namespace MidtermProjects
 
             //AtmMachine.CreateTransaction(bank1, bank2, 50, Currency.GEL).ExecuteTransaction(0,0); // The indices 0 and 0 indicate the sender's and receiver's accounts involved in the transaction.
 
+            
             Person person = new Person("Gigi", "Tsereteli", "12345678911");
+            AtmMachine.RegisterAccountForPerson(person);
+
             #endregion
         }
     }
