@@ -50,7 +50,9 @@ namespace MidtermProjects
                 acc2 = Recorder.GetBankAccount(Recorder.GetPerson(person2.PersonalN));
             }
 
-            AtmMachine.DepositFunds(acc1, acc1.AccountNumber[0], 100, Currency.GEL);
+            //AtmMachine.DepositFunds(acc1, acc1.AccountNumber[0], 100, Currency.GEL);
+
+            AtmMachine.CreateTransaction(acc1, acc2, 50, Currency.GEL, 0, 0).ExecuteTransaction();
             #endregion
         }
     }

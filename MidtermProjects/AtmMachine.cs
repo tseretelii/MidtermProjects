@@ -308,16 +308,19 @@ namespace MidtermProjects
             if (accounts == null || accounts.Count == 0) { return; }
 
             
-
-            foreach (BankAccount account in accounts)
+            for (int i = 0; i < accounts.Count; i++)
             {
-                if (transaction.SenderAccount.AccNum == account.AccountNumber[account.AccountNumber.IndexOf(transaction.SenderAccount)].AccNum)
+                for (int j = 0; j < accounts[i].AccountNumber.Count; j++)
                 {
-                    account.AccountNumber[account.AccountNumber.IndexOf(transaction.SenderAccount)].Balance[transaction.Curr] -= transaction.Amount;
-                }
-                else if (transaction.ReciverAccount.AccNum == account.AccountNumber[account.AccountNumber.IndexOf(transaction.ReciverAccount)].AccNum)
-                {
-                    account.AccountNumber[account.AccountNumber.IndexOf(transaction.ReciverAccount)].Balance[transaction.Curr] += transaction.Amount;
+                    if (accounts[i].AccountNumber[j].AccNum == transaction.SenderAccount.AccNum)
+                    {
+                        accounts[i].AccountNumber[j].Balance[transaction.Curr] -= transaction.Amount;
+                        continue;
+                    }
+                    else if (accounts[i].AccountNumber[j].AccNum == transaction.ReciverAccount.AccNum)
+                    {
+                        accounts[i].AccountNumber[j].Balance[transaction.Curr] += transaction.Amount;
+                    }
                 }
             }
 
