@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -19,6 +20,9 @@ namespace MidtermProjects
             else
                 account = UserRegister();
 
+            if (account == null)
+                return;
+
             while (true)
             {
                 userChoice = UserMenu();
@@ -27,8 +31,8 @@ namespace MidtermProjects
                     CheckBalance(account);
                 else if (userChoice == "2")
                     DepositMoney(account);
-                //else if (userChoice == "3")
-                //    // Transfer();
+                else if (userChoice == "3")
+                    Transfer(account);
                 else
                     break;
             }
@@ -69,7 +73,11 @@ namespace MidtermProjects
 
             string name = RegexForInput.GetCheckedUserInput("^[a-zA-Z]+$", "Name: ");
 
+            Console.WriteLine("Enter Your Second Name");
+
             string surName = RegexForInput.GetCheckedUserInput("^[a-zA-Z]+$", "Second Name: ");
+
+            Console.WriteLine("Enter Your Personal Number");
 
             string personalN = RegexForInput.GetCheckedUserInput("^\\d{11}$", "Personal number: ");
 
@@ -99,7 +107,7 @@ namespace MidtermProjects
                 Console.WriteLine($"{i}. {account.AccountNumber[i - 1].AccNum}");
             }
 
-            int ibanIndex = int.Parse(RegexForInput.GetCheckedUserInput($"^[1{account.AccountNumber.Count}]$"));
+            int ibanIndex = int.Parse(RegexForInput.GetCheckedUserInput($"^[1-{account.AccountNumber.Count}]$"));
 
             ibanIndex--;
 
@@ -109,15 +117,73 @@ namespace MidtermProjects
 
             var keys = account.AccountNumber[ibanIndex].Balance.Keys.ToList();
 
-            for (int i = 1;i < account.AccountNumber[ibanIndex].Balance.Keys.Count; i++)
+            for (int i = 1;i < account.AccountNumber[ibanIndex].Balance.Keys.Count + 1; i++)
             {
                 Console.WriteLine($"{i}. {account.AccountNumber[ibanIndex].Balance.Keys.ToList()[i - 1]}");
             }
 
-            int currIndex = int.Parse(RegexForInput.GetCheckedUserInput($"^[1{account.AccountNumber[ibanIndex].Balance.Keys.Count}]$"));
+            int currIndex = int.Parse(RegexForInput.GetCheckedUserInput($"^[1-{account.AccountNumber[ibanIndex].Balance.Keys.Count}]$"));
 
             AtmMachine.DepositFunds(account, account.AccountNumber[ibanIndex], amount, account.AccountNumber[ibanIndex].Balance.Keys.ToList()[currIndex - 1]);
             
+            Console.WriteLine("Complete!");
+        }
+
+        private static void Transfer(BankAccount senderAccount)
+        {
+            Console.WriteLine("To whom would you like to transfer funds?\nPlease enter personal number: ");
+
+            string personalN = RegexForInput.GetCheckedUserInput("^\\d{11}$", "Please enter personal number: ");
+
+            BankAccount reciverAccount = Recorder.GetBankAccount(Recorder.GetPerson(personalN));
+
+            if (reciverAccount == null)
+            {
+                Console.WriteLine("Person Not Found!");
+                return;
+            }
+
+            Console.WriteLine("From Which IBAN?");
+
+            for (int i = 1; i < senderAccount.AccountNumber.Count + 1; i++)
+            {
+                Console.WriteLine($"{i}. {senderAccount.AccountNumber[i - 1].AccNum}");
+            }
+
+            int senderIbanIndex = int.Parse(RegexForInput.GetCheckedUserInput($"^[1-{senderAccount.AccountNumber.Count}]$"));
+
+            senderIbanIndex--;
+
+
+            var keys = senderAccount.AccountNumber[senderIbanIndex].Balance.Keys.ToList();
+
+            for (int i = 1; i < senderAccount.AccountNumber[senderIbanIndex].Balance.Keys.Count + 1; i++)
+            {
+                Console.WriteLine($"{i}. {senderAccount.AccountNumber[senderIbanIndex].Balance.Keys.ToList()[i - 1]}");
+            }
+
+            int currIndex = int.Parse(RegexForInput.GetCheckedUserInput($"^[1-{senderAccount.AccountNumber[senderIbanIndex].Balance.Keys.Count}]$"));
+
+
+            Console.WriteLine("Please enter the amount:");
+
+            decimal amount = decimal.Parse(RegexForInput.GetCheckedUserInput("^-?\\d+(\\.\\d+)?$"));
+
+
+            Console.WriteLine("To Which IBAN?");
+
+            for (int i = 1; i < reciverAccount.AccountNumber.Count + 1; i++)
+            {
+                Console.WriteLine($"{i}. {reciverAccount.AccountNumber[i - 1].AccNum}");
+            }
+
+            int reciverIbanIndex = int.Parse(RegexForInput.GetCheckedUserInput($"^[1-{reciverAccount.AccountNumber.Count}]$"));
+
+            reciverIbanIndex--;
+
+
+
+            AtmMachine.CreateTransaction(senderAccount, reciverAccount,amount, senderAccount.AccountNumber[senderIbanIndex].Balance.Keys.ToList()[currIndex - 1], senderIbanIndex, reciverIbanIndex).ExecuteTransaction();
             Console.WriteLine("Complete!");
         }
     }

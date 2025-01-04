@@ -22,7 +22,7 @@ namespace MidtermProjects
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return default;
+                return Recorder.GetBankAccount(Recorder.GetPerson(person.PersonalN));
             }
             Recorder.CreateRecord(bankAccount);
             return bankAccount;
@@ -289,6 +289,10 @@ namespace MidtermProjects
 
         public static BankAccount GetBankAccount(Person person)
         {
+
+            if (person == null)
+                return default;
+
             var accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(DirPath + "\\BankAccount.json")) ?? new List<BankAccount>();
 
             foreach (var item in accounts)
