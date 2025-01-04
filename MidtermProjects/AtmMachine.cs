@@ -3,42 +3,118 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Transactions;
+using System.Xml;
 
 namespace MidtermProjects
 {
     public static class AtmMachine
     {
-        public static BankAccount RegisterAccountForPerson(string name, string secondName)
+        public static BankAccount RegisterAccountForPerson(Person person)
         {
-            Person person = new Person(name, secondName);
             BankAccount bankAccount = new BankAccount(person);
+            try
+            {
+                Recorder.CreateRecord(person);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return Recorder.GetBankAccount(Recorder.GetPerson(person.PersonalN));
+            }
+            Recorder.CreateRecord(bankAccount);
             return bankAccount;
         }
 
-        public static Transaction CreateTransaction(BankAccount senderBankAccount, BankAccount reciverBankAccount, decimal amount, Currency currency)
+        public static Transaction CreateTransaction(BankAccount senderBankAccount, BankAccount reciverBankAccount, decimal amount, Currency currency, int senderIndex, int reciverIndex)
         {
-            return new Transaction(senderBankAccount, reciverBankAccount, amount, currency);
+            if (senderIndex > senderBankAccount.AccountNumber.Count || reciverIndex > reciverBankAccount.AccountNumber.Count)
+                throw new ArgumentException("out of range");
+            return new Transaction(senderBankAccount.AccountNumber[senderIndex], reciverBankAccount.AccountNumber[reciverIndex], amount, currency);
+        }
+
+        public static void DepositFunds(BankAccount bankAccount, AccountIBAN iban, decimal amount, Currency currency)
+        {
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\BankLog";
+            List<BankAccount> accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(path + "\\BankAccount.json"));
+            if (accounts == null || accounts.Count == 0) throw new Exception("error!");
+
+            for (int i = 0; i < accounts.Count; i++)
+            {
+                for (int j = 0; accounts[i].AccountNumber.Count > j; j++)
+                {
+                    if (accounts[i].AccountNumber[j].AccNum == iban.AccNum)
+                    {
+                        accounts[i].AccountNumber[j].Balance[currency] += amount;
+                    }
+                }
+            }
+
+            string filePath = string.Concat(path, "\\BankAccount.json");
+
+            DirectoryInfo dirInfo = new DirectoryInfo(path);
+
+            if (!Directory.Exists(path))
+                dirInfo.Create();
+
+            if (File.ReadAllText(filePath) == "")
+                File.WriteAllText(filePath, "[]");
+
+
+            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                {
+                    streamWriter.Write(JsonSerializer.Serialize(accounts, new JsonSerializerOptions { WriteIndented = true }));
+                }
+            }
         }
     }
 
     public class Person
     {
+        public string PersonalN
+        {
+            get 
+            {
+                return _personalN;
+            }
+
+            set
+            {
+                Regex regex = new Regex("^\\d{11}$");
+                if (regex.IsMatch(value))
+                    _personalN = value;
+                else
+                    throw new InvalidOperationException("Personal number must be 11 numbers");
+            }
+        }
+        private string _personalN;
         public string Name { get; private set; }
         public string SecondName { get; private set; }
-        internal Person(string name, string secondName)
+        public DateTime RegisterDate { get; set; }
+        public Person(string name, string secondName, string personalN)
         {
             Name = name;
             SecondName = secondName;
+            PersonalN = personalN;
         }
     }
+
     public class BankAccount
     {
-        public Person Person1 { get; set; }
+        public Person PersonInfo { get; set; }
         public List<AccountIBAN> AccountNumber { get; set; }
-        internal BankAccount(Person person)
+        public DateTime RegisterDate { get; set; }
+        public BankAccount()
         {
-            Person1 = person;
+            AccountNumber = new List<AccountIBAN>();
+        }
+        public BankAccount(Person person)
+        {
+            PersonInfo = person;
             AccountNumber = [new AccountIBAN()];
         }
     }
@@ -52,32 +128,27 @@ namespace MidtermProjects
 
     public class Transaction
     {
-        public BankAccount SenderAccount { get; set; }
-        public BankAccount ReciverAccount { get; set; }
+        public AccountIBAN SenderAccount { get; set; }
+        public AccountIBAN ReciverAccount { get; set; }
         public decimal Amount { get; set; }
         public Currency Curr { get; set; }
-        public Transaction(BankAccount senderAccount, BankAccount reciverAccount, decimal amount, Currency curr)
+        public Transaction() { }
+        public Transaction(AccountIBAN senderAccount, AccountIBAN reciverAccount, decimal amount, Currency curr)
         {
             SenderAccount = senderAccount;
             ReciverAccount = reciverAccount;
             Amount = amount;
             Curr = curr;
         }
-        public void ExecuteTransaction(int senderIndex, int reciverIndex)
+        public void ExecuteTransaction()
         {
-            if (senderIndex > SenderAccount.AccountNumber.Count || reciverIndex > ReciverAccount.AccountNumber.Count)
-                throw new ArgumentException("out of range");
+
+            if (SenderAccount.Balance[Curr] < Amount)
+                throw new Exception("insufficient funds!");
+
+
+            Recorder.UpdateBankAccountRecord(this);
             
-            var senderAccAmount = from acc1 in SenderAccount.AccountNumber[senderIndex].Balance
-                                      where acc1.Key == Curr
-                                      select acc1.Value;
-
-            if (senderAccAmount.ToList()[0] < Amount)
-                throw new Exception("Insufficient funds");
-
-            SenderAccount.AccountNumber[senderIndex].Balance[Curr] -= Amount;
-            ReciverAccount.AccountNumber[reciverIndex].Balance[Curr] += Amount;
-
             Recorder.CreateRecord(this);
         }
     }
@@ -114,20 +185,167 @@ namespace MidtermProjects
 
         public static void CreateRecord(Transaction transaction)
         {
+            string filePath = string.Concat(DirPath, "\\Transactions.json");
+
             DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
             if (!directoryInfo.Exists )
-            {
                 directoryInfo.Create();
-            }
 
-            using (FileStream fileStream = new FileStream(DirPath + "\\Transactions.json", FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            if (!File.Exists(filePath))
+                File.Create(filePath);
+
+            if (File.ReadAllText(filePath) == "")
+                File.WriteAllText(filePath,"[]");
+
+            List<Transaction> transactions = JsonSerializer.Deserialize<List<Transaction>>(File.ReadAllText(filePath), new JsonSerializerOptions { IncludeFields = true, WriteIndented = true }) ?? new List<Transaction>();
+
+            transactions.Add(transaction);
+
+            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
-                    streamWriter.WriteLine(JsonSerializer.Serialize(transaction));
+                    streamWriter.Write(JsonSerializer.Serialize(transactions, new JsonSerializerOptions { WriteIndented = true }));
                 }
             }
-            Console.WriteLine("Complete!");
+        }
+
+        public static void CreateRecord(Person person)
+        {
+            string filePath = string.Concat(DirPath, "\\Persons.json");
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
+            if (!directoryInfo.Exists)
+                directoryInfo.Create();
+
+            if (!File.Exists(filePath))
+                File.Create(filePath);
+
+            if (File.ReadAllText(filePath) == "")
+                File.WriteAllText(filePath, "[]");
+
+
+            List<Person> persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(filePath)) ?? new List<Person>();
+
+            foreach (Person p in persons)
+            {
+                if (p.PersonalN == person.PersonalN)
+                    throw new ArgumentException("This person allready exists");
+            }
+
+            
+            person.RegisterDate = DateTime.Now;
+
+            persons.Add(person);
+
+            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                {
+                    streamWriter.Write(JsonSerializer.Serialize(persons, new JsonSerializerOptions {WriteIndented = true }));
+                }
+            }
+        }
+
+        public static void CreateRecord(BankAccount bankAccount)
+        {
+            string filePath = string.Concat(DirPath, "\\BankAccount.json");
+
+            DirectoryInfo dirInfo = new DirectoryInfo(DirPath);
+
+            if (!Directory.Exists(filePath))
+                dirInfo.Create();
+            
+            if (File.ReadAllText(filePath) == "")
+                File.WriteAllText(filePath, "[]");
+
+            List<BankAccount> bankAccounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(filePath), new JsonSerializerOptions { WriteIndented = true }) ?? new List<BankAccount>();
+
+            bankAccount.RegisterDate = DateTime.Now;
+
+            bankAccounts.Add(bankAccount);
+
+            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                {
+                    streamWriter.Write(JsonSerializer.Serialize(bankAccounts, new JsonSerializerOptions { WriteIndented = true }));
+                }
+            }
+        }
+
+        public static Person GetPerson(string personalN)
+        {
+            var persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(DirPath + "\\Persons.json")) ?? new List<Person>();
+            foreach (var item in persons)
+            {
+                if (item.PersonalN == personalN)
+                {
+                    return item;
+                }
+            }
+            return default;
+        }
+
+        public static BankAccount GetBankAccount(Person person)
+        {
+
+            if (person == null)
+                return default;
+
+            var accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(DirPath + "\\BankAccount.json")) ?? new List<BankAccount>();
+
+            foreach (var item in accounts)
+            {
+                if (item.PersonInfo.PersonalN == person.PersonalN)
+                {
+                    return item;
+                }
+            }
+            return default;
+        }
+
+        public static void UpdateBankAccountRecord(Transaction transaction)
+        {
+            List<BankAccount> accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(DirPath + "\\BankAccount.json"));
+
+            if (accounts == null || accounts.Count == 0) { return; }
+
+            
+            for (int i = 0; i < accounts.Count; i++)
+            {
+                for (int j = 0; j < accounts[i].AccountNumber.Count; j++)
+                {
+                    if (accounts[i].AccountNumber[j].AccNum == transaction.SenderAccount.AccNum)
+                    {
+                        accounts[i].AccountNumber[j].Balance[transaction.Curr] -= transaction.Amount;
+                        continue;
+                    }
+                    else if (accounts[i].AccountNumber[j].AccNum == transaction.ReciverAccount.AccNum)
+                    {
+                        accounts[i].AccountNumber[j].Balance[transaction.Curr] += transaction.Amount;
+                    }
+                }
+            }
+
+            string filePath = string.Concat(DirPath, "\\BankAccount.json");
+
+            DirectoryInfo dirInfo = new DirectoryInfo(DirPath);
+
+            if (!Directory.Exists(filePath))
+                dirInfo.Create();
+
+            if (File.ReadAllText(filePath) == "")
+                File.WriteAllText(filePath, "[]");
+
+
+            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                {
+                    streamWriter.Write(JsonSerializer.Serialize(accounts, new JsonSerializerOptions { WriteIndented = true }));
+                }
+            }
         }
     }
 }
