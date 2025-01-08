@@ -64,7 +64,7 @@ namespace MidtermProjects
 
             string personalN = RegexForInput.GetCheckedUserInput("^\\d{11}$", "Personal number: ");
             
-            return Recorder.GetBankAccount(Recorder.GetPerson(personalN)); // if user doesn't exist i have to handle it!!!!
+            return Recorder.GetBankAccount(Recorder.GetPerson(personalN));
         }
 
         private static BankAccount UserRegister()

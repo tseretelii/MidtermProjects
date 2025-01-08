@@ -37,8 +37,8 @@ namespace MidtermProjects
 
         public static void DepositFunds(BankAccount bankAccount, AccountIBAN iban, decimal amount, Currency currency)
         {
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\BankLog";
-            List<BankAccount> accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(path + "\\BankAccount.json"));
+            
+            List<BankAccount> accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(AtmMachineFileManagement.BankAccountPath));
             if (accounts == null || accounts.Count == 0) throw new Exception("error!");
 
             for (int i = 0; i < accounts.Count; i++)
@@ -52,18 +52,8 @@ namespace MidtermProjects
                 }
             }
 
-            string filePath = string.Concat(path, "\\BankAccount.json");
 
-            DirectoryInfo dirInfo = new DirectoryInfo(path);
-
-            if (!Directory.Exists(path))
-                dirInfo.Create();
-
-            if (File.ReadAllText(filePath) == "")
-                File.WriteAllText(filePath, "[]");
-
-
-            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fileStream = new FileStream(AtmMachineFileManagement.BankAccountPath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
@@ -88,7 +78,7 @@ namespace MidtermProjects
                 if (regex.IsMatch(value))
                     _personalN = value;
                 else
-                    throw new InvalidOperationException("Personal number must be 11 numbers");
+                    throw new ArgumentException("Personal number must be 11 numbers");
             }
         }
         private string _personalN;
@@ -106,8 +96,25 @@ namespace MidtermProjects
     public class BankAccount
     {
         public Person PersonInfo { get; set; }
+        private string _password;
+        public string Password
+        {
+            get
+            {
+                return _password;
+            }
+            set
+            {
+                Regex regex = new Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
+                if (regex.IsMatch(value))
+                    _password = value;
+                else
+                    throw new ArgumentException("Password must be:\n- Must be at least 8 characters long\n- Must include at least 1 lowercase letter (a-z)\n- Must include at least 1 uppercase letter (A-Z)\n- Must include at least 1 number (0-9)");
+            }
+        }
         public List<AccountIBAN> AccountNumber { get; set; }
         public DateTime RegisterDate { get; set; }
+        public bool IsVerified { get; set; }
         public BankAccount()
         {
             AccountNumber = new List<AccountIBAN>();
@@ -181,27 +188,14 @@ namespace MidtermProjects
 
     public static class Recorder
     {
-        public static string DirPath { get; private set; } = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\BankLog";
-
         public static void CreateRecord(Transaction transaction)
         {
-            string filePath = string.Concat(DirPath, "\\Transactions.json");
 
-            DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
-            if (!directoryInfo.Exists )
-                directoryInfo.Create();
-
-            if (!File.Exists(filePath))
-                File.Create(filePath);
-
-            if (File.ReadAllText(filePath) == "")
-                File.WriteAllText(filePath,"[]");
-
-            List<Transaction> transactions = JsonSerializer.Deserialize<List<Transaction>>(File.ReadAllText(filePath), new JsonSerializerOptions { IncludeFields = true, WriteIndented = true }) ?? new List<Transaction>();
+            List<Transaction> transactions = JsonSerializer.Deserialize<List<Transaction>>(File.ReadAllText(AtmMachineFileManagement.TransactionsPath), new JsonSerializerOptions { IncludeFields = true, WriteIndented = true }) ?? new List<Transaction>();
 
             transactions.Add(transaction);
 
-            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fileStream = new FileStream(AtmMachineFileManagement.TransactionsPath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
@@ -212,20 +206,7 @@ namespace MidtermProjects
 
         public static void CreateRecord(Person person)
         {
-            string filePath = string.Concat(DirPath, "\\Persons.json");
-
-            DirectoryInfo directoryInfo = new DirectoryInfo(DirPath);
-            if (!directoryInfo.Exists)
-                directoryInfo.Create();
-
-            if (!File.Exists(filePath))
-                File.Create(filePath);
-
-            if (File.ReadAllText(filePath) == "")
-                File.WriteAllText(filePath, "[]");
-
-
-            List<Person> persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(filePath)) ?? new List<Person>();
+            List<Person> persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(AtmMachineFileManagement.PersonsPath)) ?? new List<Person>();
 
             foreach (Person p in persons)
             {
@@ -238,7 +219,7 @@ namespace MidtermProjects
 
             persons.Add(person);
 
-            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fileStream = new FileStream(AtmMachineFileManagement.PersonsPath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
@@ -249,23 +230,14 @@ namespace MidtermProjects
 
         public static void CreateRecord(BankAccount bankAccount)
         {
-            string filePath = string.Concat(DirPath, "\\BankAccount.json");
 
-            DirectoryInfo dirInfo = new DirectoryInfo(DirPath);
-
-            if (!Directory.Exists(filePath))
-                dirInfo.Create();
-            
-            if (File.ReadAllText(filePath) == "")
-                File.WriteAllText(filePath, "[]");
-
-            List<BankAccount> bankAccounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(filePath), new JsonSerializerOptions { WriteIndented = true }) ?? new List<BankAccount>();
+            List<BankAccount> bankAccounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(AtmMachineFileManagement.BankAccountPath), new JsonSerializerOptions { WriteIndented = true }) ?? new List<BankAccount>();
 
             bankAccount.RegisterDate = DateTime.Now;
 
             bankAccounts.Add(bankAccount);
 
-            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fileStream = new FileStream(AtmMachineFileManagement.BankAccountPath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
@@ -276,7 +248,7 @@ namespace MidtermProjects
 
         public static Person GetPerson(string personalN)
         {
-            var persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(DirPath + "\\Persons.json")) ?? new List<Person>();
+            var persons = JsonSerializer.Deserialize<List<Person>>(File.ReadAllText(AtmMachineFileManagement.PersonsPath)) ?? new List<Person>();
             foreach (var item in persons)
             {
                 if (item.PersonalN == personalN)
@@ -293,7 +265,7 @@ namespace MidtermProjects
             if (person == null)
                 return default;
 
-            var accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(DirPath + "\\BankAccount.json")) ?? new List<BankAccount>();
+            var accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(AtmMachineFileManagement.BankAccountPath)) ?? new List<BankAccount>();
 
             foreach (var item in accounts)
             {
@@ -307,7 +279,7 @@ namespace MidtermProjects
 
         public static void UpdateBankAccountRecord(Transaction transaction)
         {
-            List<BankAccount> accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(DirPath + "\\BankAccount.json"));
+            List<BankAccount> accounts = JsonSerializer.Deserialize<List<BankAccount>>(File.ReadAllText(AtmMachineFileManagement.BankAccountPath));
 
             if (accounts == null || accounts.Count == 0) { return; }
 
@@ -328,18 +300,8 @@ namespace MidtermProjects
                 }
             }
 
-            string filePath = string.Concat(DirPath, "\\BankAccount.json");
 
-            DirectoryInfo dirInfo = new DirectoryInfo(DirPath);
-
-            if (!Directory.Exists(filePath))
-                dirInfo.Create();
-
-            if (File.ReadAllText(filePath) == "")
-                File.WriteAllText(filePath, "[]");
-
-
-            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fileStream = new FileStream(AtmMachineFileManagement.BankAccountPath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
             {
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
