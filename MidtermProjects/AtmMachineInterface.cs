@@ -81,9 +81,17 @@ namespace MidtermProjects
 
             string personalN = RegexForInput.GetCheckedUserInput("^\\d{11}$", "Personal number: ");
 
+            Console.WriteLine("Enter Your Email");
+
+            string mail = RegexForInput.GetCheckedUserInput("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", "Email:");
+
+            Console.WriteLine("Enter Your Password: Password must be:\n- At least 8 characters long\n- Must include at least 1 lowercase letter (a-z)\n- Must include at least 1 uppercase letter (A-Z)\n- Must include at least 1 number (0-9)");
+
+            string password = RegexForInput.GetCheckedUserInput("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]{8,}$");
+
             Person person = new Person(name, surName, personalN);
 
-            return AtmMachine.RegisterAccountForPerson(person);
+            return AtmMachine.RegisterAccountForPerson(person, mail, password);
         }
 
         private static void CheckBalance(BankAccount account)

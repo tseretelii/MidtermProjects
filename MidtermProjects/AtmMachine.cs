@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Transactions;
 using System.Xml;
@@ -12,9 +13,9 @@ namespace MidtermProjects
 {
     public static class AtmMachine
     {
-        public static BankAccount RegisterAccountForPerson(Person person)
+        public static BankAccount RegisterAccountForPerson(Person person, string mail, string password)
         {
-            BankAccount bankAccount = new BankAccount(person);
+            BankAccount bankAccount = new BankAccount(person, mail, password);
             try
             {
                 Recorder.CreateRecord(person);
@@ -96,22 +97,23 @@ namespace MidtermProjects
     public class BankAccount
     {
         public Person PersonInfo { get; set; }
-        private string _password;
-        public string Password
+        private string _email;
+        public string Email
         {
             get
             {
-                return _password;
+                return _email;
             }
             set
             {
-                Regex regex = new Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
+                Regex regex = new Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
                 if (regex.IsMatch(value))
-                    _password = value;
-                else
-                    throw new ArgumentException("Password must be:\n- Must be at least 8 characters long\n- Must include at least 1 lowercase letter (a-z)\n- Must include at least 1 uppercase letter (A-Z)\n- Must include at least 1 number (0-9)");
+                    _email = value;
+                else throw new ArgumentException("Invalid mail format");
             }
         }
+        private string _password;
+        public string Password { get; private set; }
         public List<AccountIBAN> AccountNumber { get; set; }
         public DateTime RegisterDate { get; set; }
         public bool IsVerified { get; set; }
@@ -119,10 +121,32 @@ namespace MidtermProjects
         {
             AccountNumber = new List<AccountIBAN>();
         }
-        public BankAccount(Person person)
+        public BankAccount(Person person, string mail, string password)
         {
             PersonInfo = person;
             AccountNumber = [new AccountIBAN()];
+            Email = mail;
+            Password = HashStringSHA256(password);
+        }
+        static string HashStringSHA256(string input)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                // Convert the input string to bytes
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+
+                // Compute the hash
+                byte[] hashBytes = sha256.ComputeHash(inputBytes);
+
+                // Convert the hash bytes to a hexadecimal string
+                StringBuilder hashString = new StringBuilder();
+                foreach (byte b in hashBytes)
+                {
+                    hashString.Append(b.ToString("x2"));
+                }
+
+                return hashString.ToString();
+            }
         }
     }
 

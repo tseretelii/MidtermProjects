@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MidtermProjects
@@ -12,6 +13,7 @@ namespace MidtermProjects
         public static string PersonsPath { get; private set; } = DirPath + "\\Persons.json";
         public static string BankAccountPath { get; private set; } = DirPath + "\\BankAccount.json";
         public static string TransactionsPath { get; private set; } = DirPath + "\\Transactions.json";
+        public static string PersonalInfoPath { get; set; } = DirPath + "\\PersonalInfo.json";
         public static void CreatingDirectoryForProject()
         {
             if (!Directory.Exists(DirPath))
@@ -40,6 +42,40 @@ namespace MidtermProjects
 
                 File.WriteAllText(TransactionsPath, "[]");
             }
+
+            if (!File.Exists(PersonalInfoPath))
+            {
+                File.Create(PersonalInfoPath);
+
+                File.WriteAllText
+                    (
+                        PersonalInfoPath,
+                        JsonSerializer.Serialize
+                            (
+                                new PersonalInfo("yourmail@mail.com", "your password")
+                            )
+                    );
+            }
+        }
+
+        public static PersonalInfo GetPersonalInfo()
+        {
+            return JsonSerializer.Deserialize<PersonalInfo>(File.ReadAllText(PersonalInfoPath));
+        }
+    }
+
+    public class PersonalInfo
+    {
+        public string EmailAddress { get; set; }
+        public string EmailPassword { get; set; }
+        public PersonalInfo()
+        {
+            
+        }
+        public PersonalInfo(string mail, string pass)
+        {
+            EmailAddress = mail;
+            EmailPassword = pass;
         }
     }
 }
